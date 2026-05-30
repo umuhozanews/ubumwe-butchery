@@ -13,7 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import ProductCard from '../components/ProductCard';
+import BottomNav from '../components/BottomNav';
 import { POPULAR_CUTS, BANNER_IMAGE } from '../data/meatData';
+import { useCartStore } from '../stores/cartStore';
 import { colors, fonts, radius } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
@@ -29,22 +31,15 @@ const CATEGORIES: Array<{
   icon?: IoniconName;
 }> = [
   { id: 'all', label: 'All', icon: 'menu', active: true },
-  { id: 'cow', label: 'Cow', emoji: '🐄', active: false },
-  { id: 'goat', label: 'Goat', emoji: '🐐', active: false },
-  { id: 'fish', label: 'Fish', emoji: '🐟', active: false },
-  { id: 'chicken', label: 'Chicken', emoji: '🍗', active: false },
+  { id: 'cow',     label: 'INKA',   emoji: '🐄', active: false },
+  { id: 'goat',    label: 'IHENE',  emoji: '🐐', active: false },
+  { id: 'fish',    label: 'IFI',    emoji: '🐟', active: false },
+  { id: 'chicken', label: 'INKOKO', emoji: '🍗', active: false },
 ];
 
-
-const NAV_ITEMS: { icon: IoniconName; label: string; active: boolean; fab?: boolean }[] = [
-  { icon: 'home', label: 'Home', active: true },
-  { icon: 'heart-outline', label: 'Favorite', active: false },
-  { icon: 'cart-outline', label: '', active: false, fab: true },
-  { icon: 'document-text-outline', label: 'Order', active: false },
-  { icon: 'person-outline', label: 'Account', active: false },
-];
 
 export default function HomeScreen() {
+  const { addItem } = useCartStore();
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
@@ -160,6 +155,16 @@ export default function HomeScreen() {
                   price={item.price}
                   image={item.image}
                   width={CARD_WIDTH}
+                  onAddPress={() =>
+                    addItem({
+                      productId:  item.id,
+                      categoryId: item.category,
+                      nameKiny:   item.title,
+                      nameEn:     item.subtitle,
+                      price:      parseInt(item.price.replace(',', ''), 10),
+                      image:      item.image,
+                    })
+                  }
                 />
               </Pressable>
             ))}
@@ -168,34 +173,7 @@ export default function HomeScreen() {
           <View style={{ height: 16 }} />
         </ScrollView>
 
-        {/* ── Bottom nav ── */}
-        <SafeAreaView style={styles.bottomNavSafe} edges={['bottom']}>
-          <View style={styles.bottomNav}>
-            {NAV_ITEMS.map((item, index) => {
-              if (item.fab) {
-                return (
-                  <View key={index} style={styles.fabWrapper}>
-                    <View style={styles.fab}>
-                      <Ionicons name={item.icon} size={26} color="#fff" />
-                    </View>
-                  </View>
-                );
-              }
-              return (
-                <View key={index} style={styles.navItem}>
-                  <Ionicons
-                    name={item.icon}
-                    size={24}
-                    color={item.active ? colors.primary : colors.textLight}
-                  />
-                  <Text style={[styles.navLabel, item.active && styles.activeNavLabel]}>
-                    {item.label}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </SafeAreaView>
+        <BottomNav active="home" />
       </View>
     </View>
   );
@@ -337,37 +315,4 @@ const styles = StyleSheet.create({
 
   productGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12 },
 
-  bottomNavSafe: { backgroundColor: colors.cardBg },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: colors.cardBg,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 10,
-    alignItems: 'center',
-  },
-  navItem: { flex: 1, alignItems: 'center', gap: 3, paddingVertical: 4 },
-  navLabel: { fontFamily: fonts.medium, fontSize: 11, color: colors.textLight },
-  activeNavLabel: { color: colors.primary, fontFamily: fonts.semiBold },
-  fabWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -20,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
 });

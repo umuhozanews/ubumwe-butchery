@@ -24,10 +24,11 @@ const WA_NUMBER   = '250798989741'; // Rwanda +250, no leading 0
 
 export default function PaymentScreen() {
   const params = useLocalSearchParams<{
-    category: string; product: string;
-    name: string; phone: string; address: string;
+    orderId: string; category: string; product: string;
+    name: string; phone: string;
   }>();
 
+  const orderId      = Array.isArray(params.orderId)  ? params.orderId[0]  : (params.orderId  ?? '');
   const categoryId   = Array.isArray(params.category) ? params.category[0] : (params.category ?? '');
   const productId    = Array.isArray(params.product)  ? params.product[0]  : (params.product  ?? '');
   const customerName = Array.isArray(params.name)     ? params.name[0]     : (params.name     ?? '');
@@ -90,6 +91,9 @@ export default function PaymentScreen() {
       return;
     }
     setSubmitted(true);
+    if (orderId) {
+      setTimeout(() => router.replace({ pathname: '/tracking', params: { orderId } }), 1500);
+    }
   }
 
   // ── Success screen ────────────────────────────────────────────────────────

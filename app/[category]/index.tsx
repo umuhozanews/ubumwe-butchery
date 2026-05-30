@@ -12,27 +12,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
 import ProductCard from '../../components/ProductCard';
+import BottomNav from '../../components/BottomNav';
 import { PRODUCTS, getCategoryLabel } from '../../data/meatData';
+import { useCartStore } from '../../stores/cartStore';
 import { colors, fonts, radius } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 44) / 2;
 
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
-
-const NAV_ITEMS: { icon: IoniconName; label: string; active: boolean; fab?: boolean }[] = [
-  { icon: 'home', label: 'Home', active: false },
-  { icon: 'heart-outline', label: 'Favorite', active: false },
-  { icon: 'cart-outline', label: '', active: false, fab: true },
-  { icon: 'document-text-outline', label: 'Order', active: false },
-  { icon: 'person-outline', label: 'Account', active: false },
-];
 
 export default function SubCategoryScreen() {
   const { category } = useLocalSearchParams<{ category: string }>();
   const categoryId = Array.isArray(category) ? category[0] : (category ?? '');
   const categoryLabel = getCategoryLabel(categoryId);
   const products = PRODUCTS[categoryId] ?? [];
+  const { addItem } = useCartStore();
 
   return (
     <View style={styles.root}>
@@ -91,6 +85,16 @@ export default function SubCategoryScreen() {
                   price={product.price}
                   image={product.image}
                   width={CARD_WIDTH}
+                  onAddPress={() =>
+                    addItem({
+                      productId:  product.id,
+                      categoryId,
+                      nameKiny:   product.nameKiny,
+                      nameEn:     product.nameEn,
+                      price:      parseInt(product.price.replace(',', ''), 10),
+                      image:      product.image,
+                    })
+                  }
                 />
               </Pressable>
             ))}
@@ -99,28 +103,7 @@ export default function SubCategoryScreen() {
           <View style={{ height: 16 }} />
         </ScrollView>
 
-        {/* ── Same bottom nav ── */}
-        <SafeAreaView style={styles.bottomNavSafe} edges={['bottom']}>
-          <View style={styles.bottomNav}>
-            {NAV_ITEMS.map((item, index) => {
-              if (item.fab) {
-                return (
-                  <View key={index} style={styles.fabWrapper}>
-                    <View style={styles.fab}>
-                      <Ionicons name={item.icon} size={26} color="#fff" />
-                    </View>
-                  </View>
-                );
-              }
-              return (
-                <View key={index} style={styles.navItem}>
-                  <Ionicons name={item.icon} size={24} color={colors.textLight} />
-                  <Text style={styles.navLabel}>{item.label}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </SafeAreaView>
+        <BottomNav active="home" />
       </View>
     </View>
   );
@@ -194,36 +177,4 @@ const styles = StyleSheet.create({
 
   productGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 12 },
 
-  bottomNavSafe: { backgroundColor: colors.cardBg },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: colors.cardBg,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 10,
-    alignItems: 'center',
-  },
-  navItem: { flex: 1, alignItems: 'center', gap: 3, paddingVertical: 4 },
-  navLabel: { fontFamily: fonts.medium, fontSize: 11, color: colors.textLight },
-  fabWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -20,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
 });

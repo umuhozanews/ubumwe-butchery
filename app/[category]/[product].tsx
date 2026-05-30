@@ -13,6 +13,8 @@ import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
 import ProductCard from '../../components/ProductCard';
 import { getProduct, PRODUCTS } from '../../data/meatData';
+import { useCartStore } from '../../stores/cartStore';
+import { useFavoritesStore } from '../../stores/favoritesStore';
 import { colors, fonts, radius } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
@@ -23,10 +25,12 @@ export default function ProductDetailScreen() {
   const categoryId = Array.isArray(category) ? category[0] : (category ?? '');
   const productId = Array.isArray(product) ? product[0] : (product ?? '');
 
-  const item = getProduct(categoryId, productId);
-
-  // "You Might Also Like" — other items in the same category
+  const item    = getProduct(categoryId, productId);
   const related = (PRODUCTS[categoryId] ?? []).filter((p) => p.id !== productId).slice(0, 4);
+
+  const { addItem }  = useCartStore();
+  const { toggle, isFav } = useFavoritesStore();
+  const favorited = item ? isFav(item.id) : false;
 
   if (!item) {
     return (
@@ -126,13 +130,28 @@ export default function ProductDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* ── Add to Cart bottom bar (static) ── */}
+      {/* ── Bottom bar ── */}
       <SafeAreaView style={styles.bottomBar} edges={['bottom']}>
         <View style={styles.bottomBarInner}>
           <View style={styles.priceBlock}>
             <Text style={styles.priceLabel}>Price</Text>
             <Text style={styles.cartPrice}>{item.price} RWF</Text>
           </View>
+          <Pressable
+            style={styles.cartIconBtn}
+            onPress={() =>
+              addItem({
+                productId:  productId,
+                categoryId: categoryId,
+                nameKiny:   item.nameKiny,
+                nameEn:     item.nameEn,
+                price:      parseInt(item.price.replace(',', ''), 10),
+                image:      item.image,
+              })
+            }
+          >
+            <Ionicons name="cart-outline" size={22} color={colors.primary} />
+          </Pressable>
           <Pressable
             style={styles.addToCartBtn}
             onPress={() =>
@@ -148,11 +167,18 @@ export default function ProductDetailScreen() {
         </View>
       </SafeAreaView>
 
-      {/* ── Back button overlaid on hero ── */}
+      {/* ── Back + heart overlaid on hero ── */}
       <SafeAreaView style={styles.backBtnSafe} edges={['top']} pointerEvents="box-none">
         <View style={styles.topBar} pointerEvents="box-none">
           <Pressable style={styles.backCircle} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={20} color={colors.text} />
+          </Pressable>
+          <Pressable style={styles.backCircle} onPress={() => toggle(productId)}>
+            <Ionicons
+              name={favorited ? 'heart' : 'heart-outline'}
+              size={20}
+              color={favorited ? '#ef4444' : colors.text}
+            />
           </Pressable>
         </View>
       </SafeAreaView>
@@ -257,8 +283,13 @@ const styles = StyleSheet.create({
   priceBlock: { flex: 1 },
   priceLabel: { fontFamily: fonts.regular, fontSize: 12, color: colors.textLight },
   cartPrice: { fontFamily: fonts.bold, fontSize: 20, color: colors.text },
+  cartIconBtn: {
+    width: 48, height: 48, borderRadius: radius.button,
+    borderWidth: 1.5, borderColor: colors.primary,
+    alignItems: 'center', justifyContent: 'center',
+  },
   addToCartBtn: {
-    flex: 2,
+    flex: 1,
     flexDirection: 'row',
     backgroundColor: colors.primary,
     borderRadius: radius.button,
@@ -276,7 +307,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'transparent',
   },
-  topBar: { paddingHorizontal: 16, paddingTop: 10 },
+  topBar: { paddingHorizontal: 16, paddingTop: 10, flexDirection: 'row', justifyContent: 'space-between' },
   backCircle: {
     width: 40,
     height: 40,

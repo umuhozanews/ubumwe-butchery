@@ -1,4 +1,4 @@
-import { View, Text, Image, StyleSheet, ImageSourcePropType } from 'react-native';
+import { View, Text, Image, StyleSheet, ImageSourcePropType, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius } from '../constants/theme';
 
@@ -8,9 +8,10 @@ type ProductCardProps = {
   price: string;
   image: ImageSourcePropType;
   width?: number;
+  onAddPress?: () => void;
 };
 
-export default function ProductCard({ title, subtitle, price, image, width }: ProductCardProps) {
+export default function ProductCard({ title, subtitle, price, image, width, onAddPress }: ProductCardProps) {
   return (
     <View style={[styles.card, width ? { width } : {}]}>
       <View style={styles.imageWrapper}>
@@ -23,9 +24,9 @@ export default function ProductCard({ title, subtitle, price, image, width }: Pr
           <Text style={styles.price}>
             {price} <Text style={styles.unit}>RWF/kg</Text>
           </Text>
-          <View style={styles.addBtn}>
+          <Pressable style={styles.addBtn} onPress={onAddPress} hitSlop={6}>
             <Ionicons name="add" size={18} color="#fff" />
-          </View>
+          </Pressable>
         </View>
       </View>
     </View>

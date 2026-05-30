@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import {
   useFonts,
   PlusJakartaSans_400Regular,
@@ -8,8 +8,51 @@ import {
 } from '@expo-google-fonts/plus-jakarta-sans';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../stores/authStore';
 
 SplashScreen.preventAutoHideAsync();
+
+function AuthGate() {
+  const { session, profile, isLoading, loadSession, setSession, pendingRoute, setPendingRoute } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => { loadSession(); }, []);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuth  = segments[0] === 'auth';
+    const inAdmin = segments[0] === 'admin';
+
+    if (session) {
+      if (inAuth) {
+        if (profile?.role === 'admin') {
+          router.replace('/admin/orders');
+        } else if (pendingRoute) {
+          const dest = pendingRoute;
+          setPendingRoute(null);
+          router.replace(dest as any);
+        } else {
+          router.replace('/');
+        }
+      }
+      if (inAdmin && profile?.role !== 'admin') {
+        router.replace('/');
+      }
+    }
+  }, [session, profile, isLoading, segments]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -20,12 +63,15 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
+    if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <AuthGate />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
 }

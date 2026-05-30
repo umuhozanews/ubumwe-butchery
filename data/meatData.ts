@@ -18,10 +18,10 @@ export type Product = {
 };
 
 export const CATEGORIES: Category[] = [
-  { id: 'cow',     label: 'Cow',     emoji: '🐄' },
-  { id: 'goat',    label: 'Goat',    emoji: '🐐' },
-  { id: 'fish',    label: 'Fish',    emoji: '🐟' },
-  { id: 'chicken', label: 'Chicken', emoji: '🍗' },
+  { id: 'cow',     label: 'INKA',   emoji: '🐄' },
+  { id: 'goat',    label: 'IHENE',  emoji: '🐐' },
+  { id: 'fish',    label: 'IFI',    emoji: '🐟' },
+  { id: 'chicken', label: 'INKOKO', emoji: '🍗' },
 ];
 
 export const PRODUCTS: Record<string, Product[]> = {
@@ -34,7 +34,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Pure boneless beef, carefully trimmed for the finest quality. Perfect for stewing, grilling, or making traditional Rwandan dishes. Sourced fresh every morning.',
       price: '2,500',
       image: MeatImages.iroti,
-      badge: 'Cow • Boneless',
+      badge: 'INKA • Boneless',
     },
     {
       id: 'imvange',
@@ -44,7 +44,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Flavorful beef with bones, ideal for slow cooking and rich broths. Adds deep flavor to soups and traditional stews. A hearty choice for family meals.',
       price: '1,800',
       image: MeatImages.imvange,
-      badge: 'Cow • With Bones',
+      badge: 'INKA • With Bones',
     },
     {
       id: 'izo-munda',
@@ -54,7 +54,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Fresh tripe and offal, cleaned and ready to cook. A beloved delicacy in Rwandan cuisine, rich in nutrients and deep flavor.',
       price: '1,200',
       image: MeatImages.izoMunda,
-      badge: 'Cow • Offal',
+      badge: 'INKA • Offal',
     },
   ],
   goat: [
@@ -66,7 +66,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         "Premium boneless goat meat with a rich, distinctive flavor. Great for grilling and slow cooking. A favourite for special occasions.",
       price: '3,000',
       image: MeatImages.irotiIhene,
-      badge: 'Goat • Boneless',
+      badge: 'IHENE • Boneless',
     },
     {
       id: 'imvange-ihene',
@@ -76,7 +76,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Traditional goat meat on the bone, perfect for making nyama choma and traditional stews. Rich flavor that improves with slow cooking.',
       price: '2,400',
       image: MeatImages.imvangeIhene,
-      badge: 'Goat • With Bones',
+      badge: 'IHENE • With Bones',
     },
     {
       id: 'izo-munda-ihene',
@@ -86,7 +86,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Fresh goat offal including liver, kidneys and intestines. A delicacy enjoyed across Rwanda, full of nutrients and distinctive flavor.',
       price: '1,500',
       image: MeatImages.izoMundaIhene,
-      badge: 'Goat • Offal',
+      badge: 'IHENE • Offal',
     },
   ],
   fish: [
@@ -98,7 +98,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Fresh Lake Victoria Tilapia, cleaned and ready to cook. Mild flavor and tender flesh, perfect for frying, grilling, or baking.',
       price: '2,000',
       image: MeatImages.tilapia,
-      badge: 'Fish • Fresh',
+      badge: 'IFI • Fresh',
     },
     {
       id: 'sangara',
@@ -108,7 +108,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Premium Nile Perch (Sangara) from Lake Kivu. Firm white flesh, great for all cooking methods. A popular choice across Rwanda.',
       price: '2,500',
       image: MeatImages.sangara,
-      badge: 'Fish • Fresh',
+      badge: 'IFI • Fresh',
     },
     {
       id: 'inkorayi',
@@ -118,7 +118,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Sun-dried fish, a staple in Rwandan cuisine. Rich in protein and concentrated flavor, perfect for traditional recipes and sauces.',
       price: '1,800',
       image: MeatImages.inkorayi,
-      badge: 'Fish • Dried',
+      badge: 'IFI • Dried',
     },
     {
       id: 'isambaza',
@@ -128,7 +128,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Tiny lake sardines (Isambaza) from Lake Kivu. A beloved Rwandan delicacy, wonderfully crispy when fried and perfect as a side dish.',
       price: '1,200',
       image: MeatImages.isambaza,
-      badge: 'Fish • Small',
+      badge: 'IFI • Small',
     },
   ],
   chicken: [
@@ -140,7 +140,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Fresh whole chicken, farm-raised and free-range. Perfect for roasting or making traditional chicken dishes for the whole family.',
       price: '4,500',
       image: MeatImages.chickenWhole,
-      badge: 'Chicken • Whole',
+      badge: 'INKOKO • Whole',
     },
     {
       id: 'ibice',
@@ -150,7 +150,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Assorted fresh chicken pieces including thighs, drumsticks and breasts. Ideal for stewing, grilling, or your favourite chicken dish.',
       price: '3,500',
       image: MeatImages.chickenLeg,
-      badge: 'Chicken • Pieces',
+      badge: 'INKOKO • Pieces',
     },
     {
       id: 'amababa',
@@ -160,7 +160,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Meaty chicken wings, perfect for grilling, frying or baking. A crowd-pleasing favourite for any occasion.',
       price: '3,000',
       image: MeatImages.chickenWings,
-      badge: 'Chicken • Wings',
+      badge: 'INKOKO • Wings',
     },
     {
       id: 'izo-munda-inkoko',
@@ -170,7 +170,7 @@ export const PRODUCTS: Record<string, Product[]> = {
         'Fresh chicken liver, gizzards and hearts. Nutritious and flavourful, great for quick dishes and traditional Rwandan recipes.',
       price: '1,500',
       image: MeatImages.chickenOffal,
-      badge: 'Chicken • Offal',
+      badge: 'INKOKO • Offal',
     },
   ],
 };
