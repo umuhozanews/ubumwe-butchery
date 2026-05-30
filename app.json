@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Emerald Harvest",
+    "slug": "emerald-harvest",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "emeraldharvest",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#27ae60"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ]
+  }
+}
