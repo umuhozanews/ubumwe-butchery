@@ -68,17 +68,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async ({ email, password, fullName, phone }) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // Sign up the user
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: undefined },
+    });
     if (error) throw error;
-    if (data.user) {
-      await supabase.from('users').insert({
-        id: data.user.id,
-        email,
-        phone,
-        full_name: fullName,
-        role: 'customer',
-      });
+
+    const authUser = data.user;
+    if (!authUser) throw new Error('Signup failed — try again.');
+
+    // Insert profile row
+    await supabase.from('users').upsert({
+      id: authUser.id,
+      email,
+      phone,
+      full_name: fullName,
+      role: 'customer',
+    });
+
+    // If Supabase returned a session immediately (email confirmation OFF),
+    // log the user in right away instead of asking them to confirm.
+    if (data.session) {
+      const profile = await fetchProfile(authUser.id);
+      set({ session: data.session, user: authUser, profile });
+      registerPushToken(authUser.id);
     }
+    // If no session, email confirmation is still ON in Supabase dashboard.
+    // The signup screen will show the "check your email" alert.
   },
 
   signOut: async () => {
@@ -89,8 +107,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setSession: (session) => {
     set({ session, user: session?.user ?? null });
     if (session?.user) {
-      // Only fetch profile if we don't already have one for this user
-      const existing = (useAuthStore.getState() as AuthState).profile;
+      const existing = get().profile;
       if (!existing || existing.id !== session.user.id) {
         fetchProfile(session.user.id).then((profile) => {
           if (profile) set({ profile });
