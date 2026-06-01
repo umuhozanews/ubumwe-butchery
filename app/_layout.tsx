@@ -7,10 +7,10 @@ import {
   PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import * as SplashScreen from 'expo-splash-screen';
-import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
+import { initNotifications, addNotificationResponseListener } from '../lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,8 +18,7 @@ function AuthGate() {
   const { session, profile, isLoading, loadSession, setSession, pendingRoute, setPendingRoute } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
-  const notifListener = useRef<Notifications.Subscription | null>(null);
-  const responseListener = useRef<Notifications.Subscription | null>(null);
+  const cleanupNotif = useRef<(() => void) | null>(null);
 
   useEffect(() => { loadSession(); }, []);
 
@@ -30,16 +29,14 @@ function AuthGate() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Notification tap handler — navigate to tracking
+  // Set up notification tap handler (only runs in real builds, not Expo Go)
   useEffect(() => {
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      const orderId = response.notification.request.content.data?.orderId as string | undefined;
-      if (orderId) {
-        router.push({ pathname: '/tracking', params: { orderId } } as any);
-      }
+    initNotifications();
+    cleanupNotif.current = addNotificationResponseListener((orderId) => {
+      router.push({ pathname: '/tracking', params: { orderId } } as any);
     });
     return () => {
-      responseListener.current?.remove();
+      cleanupNotif.current?.();
     };
   }, []);
 

@@ -1,32 +1,53 @@
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { supabase } from './supabase';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// expo-notifications push token registration was removed from Expo Go in SDK 53.
+// We lazy-require the module only in real device builds to avoid the crash.
+const IS_EXPO_GO = Constants.appOwnership === 'expo';
+
+type Notifs = typeof import('expo-notifications');
+
+function getNotifs(): Notifs | null {
+  if (IS_EXPO_GO || Platform.OS === 'web') return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const N = require('expo-notifications') as Notifs;
+    return N;
+  } catch {
+    return null;
+  }
+}
+
+export function initNotifications() {
+  const N = getNotifs();
+  if (!N) return;
+  N.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export async function registerForPushNotifications(): Promise<string | null> {
-  if (Platform.OS === 'web') return null;
+  const N = getNotifs();
+  if (!N) return null;
 
-  const { status: existing } = await Notifications.getPermissionsAsync();
+  const { status: existing } = await N.getPermissionsAsync();
   let finalStatus = existing;
 
   if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
+    const { status } = await N.requestPermissionsAsync();
     finalStatus = status;
   }
 
   if (finalStatus !== 'granted') return null;
 
   try {
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    const token = (await N.getExpoPushTokenAsync()).data;
     return token;
   } catch {
     return null;
@@ -34,17 +55,29 @@ export async function registerForPushNotifications(): Promise<string | null> {
 }
 
 export async function savePushToken(userId: string, token: string) {
-  await supabase
-    .from('users')
-    .update({ push_token: token })
-    .eq('id', userId);
+  const { supabase } = await import('./supabase');
+  await supabase.from('users').update({ push_token: token }).eq('id', userId);
 }
 
 export function showLocalNotification(title: string, body: string) {
-  Notifications.scheduleNotificationAsync({
+  const N = getNotifs();
+  if (!N) return;
+  N.scheduleNotificationAsync({
     content: { title, body, sound: true },
     trigger: null,
   });
+}
+
+export function addNotificationResponseListener(
+  cb: (orderId: string) => void,
+): (() => void) | null {
+  const N = getNotifs();
+  if (!N) return null;
+  const sub = N.addNotificationResponseReceivedListener((response) => {
+    const orderId = response.notification.request.content.data?.orderId as string | undefined;
+    if (orderId) cb(orderId);
+  });
+  return () => sub.remove();
 }
 
 export const ORDER_STATUS_MESSAGES = {
@@ -58,6 +91,6 @@ export const ORDER_STATUS_MESSAGES = {
   },
   cancelled: {
     title: 'Itumba Ryangirijwe ❌',
-    body: 'Itumba ryawe ryangirijwe. Wadutumanaheze kuri WhatsApp ufite ikibazo.',
+    body: 'Itumba ryawe ryangirijwe. Wadutumanaheze kuri WhatsApp.',
   },
 };
