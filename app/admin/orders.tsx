@@ -23,17 +23,19 @@ const STATUS_COLOR: Record<OrderStatus, string> = {
   pending:   '#f59e0b',
   approved:  colors.primary,
   delivered: '#6366f1',
+  cancelled: '#ef4444',
 };
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   pending:   'Itegerezwa',
   approved:  'Yemejwe',
   delivered: 'Yatanzwe',
+  cancelled: 'Yangirijwe',
 };
 
 export default function AdminOrdersScreen() {
   const { signOut } = useAuthStore();
-  const { orders, isLoading, fetchOrders, subscribeToOrders, approveOrder, markDelivered } = useOrderStore();
+  const { orders, isLoading, fetchOrders, subscribeToOrders, approveOrder, markDelivered, cancelOrder } = useOrderStore();
 
   const [activeTab,   setActiveTab]   = useState<OrderStatus | 'all'>('all');
   const [approveModal, setApproveModal] = useState<{ visible: boolean; order: Order | null }>({ visible: false, order: null });
@@ -87,7 +89,7 @@ export default function AdminOrdersScreen() {
             <Text style={styles.logo}>🥩</Text>
             <View>
               <Text style={styles.headerTitle}>Admin Panel</Text>
-              <Text style={styles.headerSub}>UBUMWE BUTCHERY</Text>
+              <Text style={styles.headerSub}>URUGWIRO BUTCHERY</Text>
             </View>
           </View>
           <Pressable style={styles.signOutBtn} onPress={async () => { await signOut(); router.replace('/auth/login'); }}>

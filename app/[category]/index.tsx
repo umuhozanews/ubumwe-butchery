@@ -3,7 +3,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  TextInput,
   Pressable,
   Dimensions,
 } from 'react-native';
@@ -47,19 +46,17 @@ export default function SubCategoryScreen() {
           </View>
         </View>
 
-        {/* Search bar */}
-        <View style={styles.searchBar}>
+        {/* Search bar — scoped to this category */}
+        <Pressable
+          style={styles.searchBar}
+          onPress={() => router.push({ pathname: '/search', params: { category: categoryId } } as any)}
+        >
           <Ionicons name="search-outline" size={18} color={colors.textLight} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={`Search ${categoryLabel} cuts...`}
-            placeholderTextColor={colors.textLight}
-            editable={false}
-          />
+          <Text style={styles.searchPlaceholder}>Shakisha mu {categoryLabel}...</Text>
           <View style={styles.filterBtn}>
             <Ionicons name="options-outline" size={18} color={colors.primary} />
           </View>
-        </View>
+        </Pressable>
       </SafeAreaView>
 
       {/* ── Light content ── */}
@@ -151,7 +148,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
   },
-  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: colors.text, padding: 0 },
+  searchPlaceholder: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: colors.textLight },
   filterBtn: {
     width: 32,
     height: 32,

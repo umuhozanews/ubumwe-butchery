@@ -1,27 +1,71 @@
 {
   "expo": {
-    "name": "Emerald Harvest",
+    "name": "UBUMWE BUTCHERY",
     "slug": "emerald-harvest",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "emeraldharvest",
+    "scheme": "ubumwebutchery",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ubumwebutchery.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Dukenewe kamera kugira ngo ufate ifoto y'icyemezo cy'ubwishyu",
+        "NSPhotoLibraryUsageDescription": "Dukenewe ububasha bwo kugera ku mashusho yawe kugira ngo uhitemo icyemezo cy'ubwishyu",
+        "NSUserNotificationsUsageDescription": "Tuzakumenyesha igihe itumba ryawe rigeze mu nzira"
+      }
     },
     "android": {
+      "package": "com.ubumwebutchery.app",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#27ae60"
-      }
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
-    ]
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#27ae60",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Dukenewe ububasha bwo kugera ku mashusho yawe kugira ngo uhitemo icyemezo cy'ubwishyu.",
+          "cameraPermission": "Dukenewe kamera kugira ngo ufate ifoto y'icyemezo cy'ubwishyu."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-eas-project-id"
+      }
+    }
   }
 }

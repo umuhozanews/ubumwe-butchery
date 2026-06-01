@@ -1,4 +1,4 @@
-// Local butchery images provided by UBUMWE BUTCHERY
+// Local butchery images provided by URUGWIRO BUTCHERY
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const MeatImages = {

@@ -70,11 +70,11 @@ export default function OrderScreen() {
       router.push({
         pathname: '/payment',
         params: {
-          orderId:  order.id,
-          category: categoryId,
-          product:  productId,
-          name:     name.trim(),
-          phone:    phone.trim(),
+          orderId:   order.id,
+          name:      name.trim(),
+          phone:     phone.trim(),
+          total:     String(total),
+          itemCount: '1',
         },
       });
     } catch (e: any) {

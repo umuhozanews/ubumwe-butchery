@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,13 +6,15 @@ import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useOrderStore } from '../stores/orderStore';
 import { useCountdown } from '../hooks/useCountdown';
+import { showLocalNotification, ORDER_STATUS_MESSAGES } from '../lib/notifications';
 import { colors, fonts, radius } from '../constants/theme';
 import { OrderStatus } from '../lib/types';
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; bg: string; desc: string }> = {
-  pending:   { label: 'Itegerezwa',  icon: 'time-outline',           color: '#f59e0b', bg: '#fffbeb', desc: "Itumba ryawe ryakirwe. Turaritegereza kugira ngo turibyeze." },
+  pending:   { label: 'Itegerezwa',  icon: 'time-outline',             color: '#f59e0b', bg: '#fffbeb', desc: "Itumba ryawe ryakirwe. Turaritegereza kugira ngo turibyeze." },
   approved:  { label: 'Yemejwe',     icon: 'checkmark-circle-outline', color: colors.primary, bg: '#f0fdf4', desc: "Itumba ryemejwe! Tuzaribatwara vuba." },
-  delivered: { label: 'Ryatanzwe',   icon: 'bag-check-outline',       color: '#6366f1', bg: '#eef2ff', desc: "Itumba ryatanzwe neza. Murakoze guhitamo UBUMWE BUTCHERY! 🎉" },
+  delivered: { label: 'Ryatanzwe',   icon: 'bag-check-outline',        color: '#6366f1', bg: '#eef2ff', desc: "Itumba ryatanzwe neza. Murakoze guhitamo UBUMWE BUTCHERY! 🎉" },
+  cancelled: { label: 'Ryangirijwe', icon: 'close-circle-outline',     color: '#ef4444', bg: '#fef2f2', desc: "Itumba ryangirijwe. Wadutumanaheze kuri WhatsApp ufite ikibazo." },
 };
 
 export default function TrackingScreen() {
@@ -22,6 +24,7 @@ export default function TrackingScreen() {
   const { currentOrder, fetchOrderById, subscribeToMyOrder } = useOrderStore();
 
   const order = currentOrder?.id === id ? currentOrder : null;
+  const prevStatus = useRef<OrderStatus | null>(null);
 
   const countdown = useCountdown(order?.approved_at ?? null, order?.delivery_minutes ?? 30);
 
@@ -35,6 +38,16 @@ export default function TrackingScreen() {
     return unsub;
   }, [id]);
 
+  // Fire local notification when status changes
+  useEffect(() => {
+    if (!order) return;
+    if (prevStatus.current !== null && prevStatus.current !== order.status) {
+      const msg = ORDER_STATUS_MESSAGES[order.status as keyof typeof ORDER_STATUS_MESSAGES];
+      if (msg) showLocalNotification(msg.title, msg.body);
+    }
+    prevStatus.current = order.status;
+  }, [order?.status]);
+
   if (!order) {
     return (
       <View style={styles.center}>
@@ -43,7 +56,7 @@ export default function TrackingScreen() {
     );
   }
 
-  const cfg = STATUS_CONFIG[order.status];
+  const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
 
   return (
     <View style={styles.root}>
@@ -73,7 +86,6 @@ export default function TrackingScreen() {
             <Text style={[styles.statusLabel, { color: cfg.color }]}>{cfg.label}</Text>
             <Text style={styles.statusDesc}>{cfg.desc}</Text>
 
-            {/* Countdown when approved */}
             {order.status === 'approved' && !countdown.isExpired && (
               <View style={styles.countdownBox}>
                 <Text style={styles.countdownLabel}>Itumba riza mu:</Text>
@@ -82,7 +94,9 @@ export default function TrackingScreen() {
             )}
             {order.status === 'approved' && countdown.isExpired && (
               <View style={styles.countdownBox}>
-                <Text style={[styles.countdownTimer, { color: '#ef4444' }]}>Iminota irarangiye — tegereza agahe</Text>
+                <Text style={[styles.countdownTimer, { color: '#ef4444', fontSize: 16 }]}>
+                  Iminota irarangiye — tegereza agahe
+                </Text>
               </View>
             )}
           </View>
@@ -90,7 +104,9 @@ export default function TrackingScreen() {
           {/* Progress steps */}
           <View style={styles.stepsCard}>
             {(['pending', 'approved', 'delivered'] as OrderStatus[]).map((step, i) => {
-              const done    = ['pending', 'approved', 'delivered'].indexOf(order.status) >= i;
+              const statusOrder = ['pending', 'approved', 'delivered'];
+              const currentIdx = statusOrder.indexOf(order.status);
+              const done    = currentIdx >= i;
               const current = order.status === step;
               return (
                 <View key={step} style={styles.stepRow}>
@@ -99,7 +115,7 @@ export default function TrackingScreen() {
                       {done && !current && <Ionicons name="checkmark" size={12} color="#fff" />}
                       {current && <View style={styles.stepDotInner} />}
                     </View>
-                    {i < 2 && <View style={[styles.stepLine, done && i < ['pending','approved','delivered'].indexOf(order.status) && styles.stepLineDone]} />}
+                    {i < 2 && <View style={[styles.stepLine, done && currentIdx > i && styles.stepLineDone]} />}
                   </View>
                   <Text style={[styles.stepText, (done || current) && styles.stepTextDone]}>
                     {STATUS_CONFIG[step].label}
@@ -124,7 +140,6 @@ export default function TrackingScreen() {
               </View>
             ))}
 
-            {/* Items */}
             {order.items.map((item, i) => (
               <View key={i} style={[styles.summaryRow, { borderBottomWidth: 0, marginTop: 4 }]}>
                 <Text style={styles.itemName}>{item.name} × {item.quantity_kg}kg</Text>

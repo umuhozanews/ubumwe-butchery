@@ -8,10 +8,11 @@ interface OrderState {
   isLoading: boolean;
   createOrder: (data: NewOrder) => Promise<Order>;
   fetchOrders: () => Promise<void>;
-  fetchMyOrders: (userId: string) => Promise<void>;
+  fetchMyOrders: (userId: string) => Promise<Order[]>;
   fetchOrderById: (orderId: string) => Promise<void>;
   approveOrder: (orderId: string, deliveryMinutes: number) => Promise<void>;
   markDelivered: (orderId: string) => Promise<void>;
+  cancelOrder: (orderId: string) => Promise<void>;
   subscribeToOrders: () => () => void;
   subscribeToMyOrder: (orderId: string) => () => void;
 }
@@ -51,9 +52,10 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       .from('orders')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1);
-    if (data?.[0]) set({ currentOrder: data[0] });
+      .order('created_at', { ascending: false });
+    const orders = data ?? [];
+    if (orders[0]) set({ currentOrder: orders[0], orders });
+    return orders;
   },
 
   approveOrder: async (orderId, deliveryMinutes) => {
@@ -74,6 +76,20 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     const { data, error } = await supabase
       .from('orders')
       .update({ status: 'delivered' })
+      .eq('id', orderId)
+      .select()
+      .single();
+    if (error) throw error;
+    set((s) => ({
+      orders: s.orders.map((o) => (o.id === orderId ? data : o)),
+      currentOrder: s.currentOrder?.id === orderId ? data : s.currentOrder,
+    }));
+  },
+
+  cancelOrder: async (orderId) => {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
       .eq('id', orderId)
       .select()
       .single();

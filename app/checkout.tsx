@@ -63,9 +63,11 @@ export default function CheckoutScreen() {
       router.replace({
         pathname: '/payment',
         params: {
-          orderId:  order.id,
-          name:     name.trim(),
-          phone:    phone.trim(),
+          orderId:   order.id,
+          name:      name.trim(),
+          phone:     phone.trim(),
+          total:     String(total),
+          itemCount: String(items.length),
         },
       } as any);
     } catch (e: any) {

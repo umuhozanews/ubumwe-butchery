@@ -4,7 +4,6 @@ import {
   ScrollView,
   Image,
   StyleSheet,
-  TextInput,
   Pressable,
   Dimensions,
 } from 'react-native';
@@ -57,25 +56,20 @@ export default function HomeScreen() {
               <Text style={styles.userName}>UBUMWE BUTCHERY</Text>
             </View>
           </View>
-          <View style={styles.bellCircle}>
+          <Pressable style={styles.bellCircle} onPress={() => router.push('/my-orders' as any)}>
             <Ionicons name="notifications-outline" size={20} color="#fff" />
             <View style={styles.bellDot} />
-          </View>
+          </Pressable>
         </View>
 
-        {/* Search bar — still inside dark header */}
-        <View style={styles.searchBar}>
+        {/* Search bar — tapping opens search screen */}
+        <Pressable style={styles.searchBar} onPress={() => router.push('/search' as any)}>
           <Ionicons name="search-outline" size={18} color={colors.textLight} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search meat cuts..."
-            placeholderTextColor={colors.textLight}
-            editable={false}
-          />
+          <Text style={styles.searchPlaceholder}>Shakisha inkoko, ifi, inka...</Text>
           <View style={styles.filterBtn}>
             <Ionicons name="options-outline" size={18} color={colors.primary} />
           </View>
-        </View>
+        </Pressable>
       </SafeAreaView>
 
       {/* ── Light content ── */}
@@ -139,7 +133,9 @@ export default function HomeScreen() {
           {/* Popular Items */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Popular Cuts</Text>
-            <Text style={styles.viewAll}>View All</Text>
+            <Pressable onPress={() => router.push('/search' as any)}>
+              <Text style={styles.viewAll}>View All</Text>
+            </Pressable>
           </View>
 
           {/* Product grid */}
@@ -237,7 +233,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
   },
-  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: colors.text, padding: 0 },
+  searchPlaceholder: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: colors.textLight },
   filterBtn: {
     width: 32,
     height: 32,

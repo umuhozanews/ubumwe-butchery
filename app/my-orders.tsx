@@ -16,7 +16,8 @@ import { colors, fonts, radius } from '../constants/theme';
 const STATUS: Record<OrderStatus, { label: string; color: string; icon: string }> = {
   pending:   { label: 'Itegerezwa', color: '#f59e0b',       icon: 'time-outline' },
   approved:  { label: 'Yemejwe',    color: colors.primary,  icon: 'checkmark-circle-outline' },
-  delivered: { label: 'Ryatanzwe', color: '#6b7280',        icon: 'bag-check-outline' },
+  delivered: { label: 'Ryatanzwe',  color: '#6b7280',       icon: 'bag-check-outline' },
+  cancelled: { label: 'Yangirijwe', color: '#ef4444',       icon: 'close-circle-outline' },
 };
 
 export default function MyOrdersScreen() {

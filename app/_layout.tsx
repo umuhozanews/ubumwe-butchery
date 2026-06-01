@@ -7,7 +7,8 @@ import {
   PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 
@@ -17,6 +18,8 @@ function AuthGate() {
   const { session, profile, isLoading, loadSession, setSession, pendingRoute, setPendingRoute } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+  const notifListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => { loadSession(); }, []);
 
@@ -25,6 +28,19 @@ function AuthGate() {
       setSession(s);
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Notification tap handler — navigate to tracking
+  useEffect(() => {
+    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+      const orderId = response.notification.request.content.data?.orderId as string | undefined;
+      if (orderId) {
+        router.push({ pathname: '/tracking', params: { orderId } } as any);
+      }
+    });
+    return () => {
+      responseListener.current?.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -36,7 +52,7 @@ function AuthGate() {
     if (session) {
       if (inAuth) {
         if (profile?.role === 'admin') {
-          router.replace('/admin/orders');
+          router.replace('/admin');
         } else if (pendingRoute) {
           const dest = pendingRoute;
           setPendingRoute(null);
