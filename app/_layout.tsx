@@ -47,8 +47,11 @@ function AuthGate() {
     const inAdmin = segments[0] === 'admin';
 
     if (session) {
+      // Wait until profile is loaded before deciding where to send the user
+      if (!profile) return;
+
       if (inAuth) {
-        if (profile?.role === 'admin') {
+        if (profile.role === 'admin') {
           router.replace('/admin');
         } else if (pendingRoute) {
           const dest = pendingRoute;
@@ -58,7 +61,7 @@ function AuthGate() {
           router.replace('/');
         }
       }
-      if (inAdmin && profile?.role !== 'admin') {
+      if (inAdmin && profile.role !== 'admin') {
         router.replace('/');
       }
     }
