@@ -10,59 +10,6 @@ import { router } from 'expo-router';
 import { useAuthStore } from '../../stores/authStore';
 import { colors, fonts, radius } from '../../constants/theme';
 
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
-
-interface FieldProps {
-  label: string;
-  placeholder: string;
-  icon: IoniconName;
-  value: string;
-  onChangeText: (t: string) => void;
-  error?: string;
-  keyboardType?: React.ComponentProps<typeof TextInput>['keyboardType'];
-  autoCapitalize?: React.ComponentProps<typeof TextInput>['autoCapitalize'];
-  secure?: boolean;
-  showPass?: boolean;
-  onTogglePass?: () => void;
-  returnKeyType?: React.ComponentProps<typeof TextInput>['returnKeyType'];
-  onSubmitEditing?: () => void;
-}
-
-function Field({
-  label, placeholder, icon, value, onChangeText, error,
-  keyboardType = 'default', autoCapitalize = 'sentences',
-  secure, showPass, onTogglePass,
-  returnKeyType = 'next', onSubmitEditing,
-}: FieldProps) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label} <Text style={styles.required}>*</Text></Text>
-      <View style={[styles.inputRow, !!error && styles.inputError]}>
-        <Ionicons name={icon} size={18} color={colors.textLight} />
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor={colors.textLight}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          autoCorrect={false}
-          secureTextEntry={secure && !showPass}
-          value={value}
-          onChangeText={onChangeText}
-          returnKeyType={returnKeyType}
-          onSubmitEditing={onSubmitEditing}
-        />
-        {secure && onTogglePass && (
-          <Pressable onPress={onTogglePass} hitSlop={8}>
-            <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.textLight} />
-          </Pressable>
-        )}
-      </View>
-      {!!error && <Text style={styles.errorText}>{error}</Text>}
-    </View>
-  );
-}
-
 export default function SignupScreen() {
   const { signUp } = useAuthStore();
 
@@ -82,12 +29,12 @@ export default function SignupScreen() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!fullName.trim() || fullName.trim().length < 3)
-      e.fullName = 'Injiza amazina yose (byibura imibare 3)';
-    if (!phone.trim() || !/^0?7[2-9]\d{7}$/.test(phone.trim()))
-      e.phone = 'Nimero si nzima (ex: 0781234567)';
+    if (!fullName.trim())
+      e.fullName = 'Injiza amazina yawe';
+    if (!phone.trim())
+      e.phone = 'Injiza nimero ya telefone';
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim()))
-      e.email = 'Email si nzima';
+      e.email = 'Injiza email nzima';
     if (!password || password.length < 6)
       e.password = 'Ijambo ry\'ibanga: byibura imibare 6';
     if (!confirmPassword)
@@ -102,11 +49,12 @@ export default function SignupScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const normalizedPhone = phone.trim().startsWith('0')
-        ? `+250${phone.trim().slice(1)}`
-        : `+250${phone.trim()}`;
-      await signUp({ email: email.trim(), password, fullName: fullName.trim(), phone: normalizedPhone });
-      // AuthGate in _layout.tsx will redirect automatically once session + profile are set
+      await signUp({
+        email: email.trim(),
+        password,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+      });
     } catch (e: any) {
       Alert.alert('Ikosa', e.message ?? 'Ikibazo cyabaye. Ongera ugerageze.');
     } finally {
@@ -135,29 +83,37 @@ export default function SignupScreen() {
               <Text style={styles.title}>Kora Konti</Text>
               <Text style={styles.subtitle}>Uzuza amakuru yawe hano hasi</Text>
 
-              <Field
-                label="Amazina Yose"
-                placeholder="Izina + Inzira y'Umuryango"
-                icon="person-outline"
-                value={fullName}
-                onChangeText={(t) => { setFullName(t); clearError('fullName'); }}
-                autoCapitalize="words"
-                error={errors.fullName}
-              />
-
-              {/* Phone with +250 prefix */}
+              {/* Full Name */}
               <View style={styles.field}>
-                <Text style={styles.label}>Nimero ya Telefone <Text style={styles.required}>*</Text></Text>
-                <View style={[styles.inputRow, !!errors.phone && styles.inputError]}>
-                  <View style={styles.prefix}><Text style={styles.prefixText}>+250</Text></View>
+                <Text style={styles.label}>Amazina Yose</Text>
+                <View style={[styles.inputRow, !!errors.fullName && styles.inputError]}>
+                  <Ionicons name="person-outline" size={18} color={colors.textLight} />
                   <TextInput
                     style={styles.input}
-                    placeholder="07X XXX XXXX"
+                    placeholder="Izina ryawe ryose"
+                    placeholderTextColor={colors.textLight}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    value={fullName}
+                    onChangeText={(t) => { setFullName(t); clearError('fullName'); }}
+                    returnKeyType="next"
+                  />
+                </View>
+                {!!errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
+              </View>
+
+              {/* Phone */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Nimero ya Telefone</Text>
+                <View style={[styles.inputRow, !!errors.phone && styles.inputError]}>
+                  <Ionicons name="call-outline" size={18} color={colors.textLight} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="0781234567"
                     placeholderTextColor={colors.textLight}
                     keyboardType="phone-pad"
                     autoCapitalize="none"
                     autoCorrect={false}
-                    maxLength={10}
                     value={phone}
                     onChangeText={(t) => { setPhone(t); clearError('phone'); }}
                     returnKeyType="next"
@@ -166,44 +122,72 @@ export default function SignupScreen() {
                 {!!errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
               </View>
 
-              <Field
-                label="Email"
-                placeholder="your@email.com"
-                icon="mail-outline"
-                value={email}
-                onChangeText={(t) => { setEmail(t); clearError('email'); }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={errors.email}
-              />
+              {/* Email */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Email</Text>
+                <View style={[styles.inputRow, !!errors.email && styles.inputError]}>
+                  <Ionicons name="mail-outline" size={18} color={colors.textLight} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="your@email.com"
+                    placeholderTextColor={colors.textLight}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    value={email}
+                    onChangeText={(t) => { setEmail(t); clearError('email'); }}
+                    returnKeyType="next"
+                  />
+                </View>
+                {!!errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+              </View>
 
-              <Field
-                label="Ijambo ry'Ibanga"
-                placeholder="••••••••"
-                icon="lock-closed-outline"
-                value={password}
-                onChangeText={(t) => { setPassword(t); clearError('password'); }}
-                autoCapitalize="none"
-                secure
-                showPass={showPass}
-                onTogglePass={() => setShowPass(!showPass)}
-                error={errors.password}
-              />
+              {/* Password */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Ijambo ry'Ibanga</Text>
+                <View style={[styles.inputRow, !!errors.password && styles.inputError]}>
+                  <Ionicons name="lock-closed-outline" size={18} color={colors.textLight} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textLight}
+                    secureTextEntry={!showPass}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    value={password}
+                    onChangeText={(t) => { setPassword(t); clearError('password'); }}
+                    returnKeyType="next"
+                  />
+                  <Pressable onPress={() => setShowPass(!showPass)} hitSlop={8}>
+                    <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.textLight} />
+                  </Pressable>
+                </View>
+                {!!errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+              </View>
 
-              <Field
-                label="Emeza Ijambo ry'Ibanga"
-                placeholder="••••••••"
-                icon="lock-closed-outline"
-                value={confirmPassword}
-                onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
-                autoCapitalize="none"
-                secure
-                showPass={showConfirm}
-                onTogglePass={() => setShowConfirm(!showConfirm)}
-                error={errors.confirmPassword}
-                returnKeyType="done"
-                onSubmitEditing={handleSubmit}
-              />
+              {/* Confirm Password */}
+              <View style={styles.field}>
+                <Text style={styles.label}>Emeza Ijambo ry'Ibanga</Text>
+                <View style={[styles.inputRow, !!errors.confirmPassword && styles.inputError]}>
+                  <Ionicons name="lock-closed-outline" size={18} color={colors.textLight} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textLight}
+                    secureTextEntry={!showConfirm}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    value={confirmPassword}
+                    onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
+                    returnKeyType="done"
+                    onSubmitEditing={handleSubmit}
+                  />
+                  <Pressable onPress={() => setShowConfirm(!showConfirm)} hitSlop={8}>
+                    <Ionicons name={showConfirm ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.textLight} />
+                  </Pressable>
+                </View>
+                {!!errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+              </View>
 
               <Pressable
                 style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
@@ -250,9 +234,8 @@ const styles = StyleSheet.create({
   title:    { fontFamily: fonts.bold,    fontSize: 22, color: colors.text, marginBottom: 4 },
   subtitle: { fontFamily: fonts.regular, fontSize: 13, color: colors.textSecondary, marginBottom: 20 },
 
-  field:      { marginBottom: 14 },
-  label:      { fontFamily: fonts.semiBold, fontSize: 13, color: colors.text, marginBottom: 6 },
-  required:   { color: '#ef4444' },
+  field:    { marginBottom: 14 },
+  label:    { fontFamily: fonts.semiBold, fontSize: 13, color: colors.text, marginBottom: 6 },
   inputRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: colors.contentBg, borderRadius: radius.button,
@@ -262,8 +245,6 @@ const styles = StyleSheet.create({
   inputError: { borderColor: '#ef4444' },
   input:      { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: colors.text, padding: 0 },
   errorText:  { fontFamily: fonts.regular, fontSize: 11, color: '#ef4444', marginTop: 3 },
-  prefix:     { backgroundColor: '#e5e7eb', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  prefixText: { fontFamily: fonts.medium, fontSize: 13, color: colors.text },
 
   submitBtn: {
     backgroundColor: colors.primary, borderRadius: radius.button, paddingVertical: 15,
