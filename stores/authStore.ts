@@ -78,6 +78,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const authUser = data.user;
     if (!authUser) throw new Error('Signup failed — try again.');
 
+    // Supabase silently returns empty identities when the email already exists
+    if ((authUser.identities ?? []).length === 0) {
+      throw new Error('Iyi email isanzwe ikoreshwa. Gerageza kwinjira.');
+    }
+
     await supabase.from('users').upsert({
       id: authUser.id,
       email,
@@ -86,17 +91,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       role: 'customer',
     });
 
-    // Use the session from signUp if available (email confirmation OFF),
-    // otherwise sign in immediately with the same credentials.
-    const activeSession = data.session ?? (await (async () => {
-      const { data: d, error: e } = await supabase.auth.signInWithPassword({ email, password });
-      if (e) throw e;
-      return d.session;
-    })());
+    // If Supabase gave us a session, email confirmation is OFF — log in directly
+    if (data.session) {
+      const profile = await fetchProfile(authUser.id);
+      set({ session: data.session, user: authUser, profile });
+      registerPushToken(authUser.id);
+      return;
+    }
 
-    const profile = await fetchProfile(authUser.id);
-    set({ session: activeSession, user: authUser, profile });
-    registerPushToken(authUser.id);
+    // No session means email confirmation is ON in Supabase dashboard.
+    // Try signing in anyway — if this fails, tell the user to disable it.
+    const { data: d, error: e } = await supabase.auth.signInWithPassword({ email, password });
+    if (e) {
+      throw new Error(
+        'Konti yashyizwe! Ariko email confirmation irashobora kuba irafungiye mu Supabase.\n\n' +
+        'Genda: Supabase → Authentication → Providers → Email → Ucike "Confirm email".'
+      );
+    }
+    const profile = await fetchProfile(d.user.id);
+    set({ session: d.session, user: d.user, profile });
+    registerPushToken(d.user.id);
   },
 
   signOut: async () => {
