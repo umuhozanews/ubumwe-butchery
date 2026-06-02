@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../stores/authStore';
-// useAuthStore is also used directly (getState) to check post-signup session
 import { colors, fonts, radius } from '../../constants/theme';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -106,22 +105,8 @@ export default function SignupScreen() {
       const normalizedPhone = phone.trim().startsWith('0')
         ? `+250${phone.trim().slice(1)}`
         : `+250${phone.trim()}`;
-      const { session } = useAuthStore.getState();
       await signUp({ email: email.trim(), password, fullName: fullName.trim(), phone: normalizedPhone });
-
-      // If a session exists after signUp, email confirmation is OFF → user is already logged in
-      const afterSession = useAuthStore.getState().session;
-      if (afterSession) {
-        // AuthGate will redirect automatically — nothing to do
-        return;
-      }
-
-      // Email confirmation is still ON in Supabase
-      Alert.alert(
-        'Murakoze! 🎉',
-        'Konti yawe yashyizwe. Reba email yawe ubone ubutumwa bwo kwemeza kandi usubire kwinjira.',
-        [{ text: 'OK', onPress: () => router.replace('/auth/login') }]
-      );
+      // AuthGate in _layout.tsx will redirect automatically once session + profile are set
     } catch (e: any) {
       Alert.alert('Ikosa', e.message ?? 'Ikibazo cyabaye. Ongera ugerageze.');
     } finally {

@@ -68,7 +68,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async ({ email, password, fullName, phone }) => {
-    // Sign up the user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -79,7 +78,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const authUser = data.user;
     if (!authUser) throw new Error('Signup failed — try again.');
 
-    // Insert profile row
     await supabase.from('users').upsert({
       id: authUser.id,
       email,
@@ -88,15 +86,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       role: 'customer',
     });
 
-    // If Supabase returned a session immediately (email confirmation OFF),
-    // log the user in right away instead of asking them to confirm.
-    if (data.session) {
-      const profile = await fetchProfile(authUser.id);
-      set({ session: data.session, user: authUser, profile });
-      registerPushToken(authUser.id);
-    }
-    // If no session, email confirmation is still ON in Supabase dashboard.
-    // The signup screen will show the "check your email" alert.
+    // Use the session from signUp if available (email confirmation OFF),
+    // otherwise sign in immediately with the same credentials.
+    const activeSession = data.session ?? (await (async () => {
+      const { data: d, error: e } = await supabase.auth.signInWithPassword({ email, password });
+      if (e) throw e;
+      return d.session;
+    })());
+
+    const profile = await fetchProfile(authUser.id);
+    set({ session: activeSession, user: authUser, profile });
+    registerPushToken(authUser.id);
   },
 
   signOut: async () => {
